@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use App\Models\User;
+use App\Models\Comment;
+use App\Models\Post;
 
 
 class ProfileController extends Controller
@@ -60,8 +63,12 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
-    public function show(User $user){
-        $posts = $user->posts()->with('category')->latest()->paginate(10);
-        return view('profile.show', compact('user', 'posts'));
+    public function show(Category $category){
+        $user=Auth::user();
+        $posts=$user->posts()->with('category')->latest()->paginate(10,['*'], 'posts_page');
+        $commentedPosts=$user->posts()->with(['category', 'user'])->withCount('comments')->latest()->paginate(10,['*'], 'comments_page');
+
+        return view('profile.show', compact('user','posts','commentedPosts'));
+
     }
 }

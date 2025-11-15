@@ -4,7 +4,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', [PostController::class, 'home'])->name('home');
 
@@ -30,8 +30,10 @@ Route::get('/categories/{category:slug}', [PostController::class, 'category'])->
 
 Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
-// Профиль 
-Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+// Профиль
+
+Route::get('/profile', [ProfileController::class,'show'])->name('profile.show');
+
 
 Route::get('/about', function () {
     return view('about');

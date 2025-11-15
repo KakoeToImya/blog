@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Category;
 use App\Models\Comment;
+use App\Http\Requests\PostRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
@@ -26,16 +27,10 @@ class PostController extends Controller
 
     public function create(){
         return view('posts.create');
-    }   
+    }
 
-    public function store(Request $request){
-        $validated = $request->validate([
-            'title' => 'required|min:3|max:255',
-            'excerpt'=> 'required|min:10|max:300',
-            'content'=> 'required|min:10',
-            'category_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2000',
-        ]);
+    public function store(PostRequest $request){
+        $validated = $request->validated();
 
         $validated['user_id']=auth()->id();
         $validated['author_name']=auth()->user()->name;
@@ -56,16 +51,10 @@ class PostController extends Controller
 
     }
 
-    public function update(Request $request,$id){
-        $validated = $request->validate([
-            'title' => 'required|min:3|max:255',
-            'excerpt'=> 'required|min:10|max:300',
-            'content'=> 'required|min:10',
-            'category_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2000'
-        ]);
+    public function update(PostRequest $request,$id){
+        $validated = $request->validated();
 
-        
+
 
         $post = Post::findOrFail($id);
         $post->update($validated);
@@ -80,7 +69,7 @@ class PostController extends Controller
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
             }
-            
+
             $validated['image'] = $request->file('image')->store('posts', 'public');
         }
 

@@ -16,7 +16,7 @@ class Post extends Model
     protected $fillable = [
         'title',
         'excerpt',
-        'content', 
+        'content',
         'author_name',
         'published_at',
         'category_id',
@@ -26,7 +26,7 @@ class Post extends Model
 
     protected $dates = [
         'published_at',
-        'created_at', 
+        'created_at',
         'updated_at',
         'deleted_at'
     ];
@@ -35,18 +35,18 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-    protected static function boot(){
-        parent::boot();
+//     protected static function boot(){
+//         parent::boot();
+//
+//         static::creating(function ($post) {
+//             if (auth()->check()) {
+//                 $post->user_id = auth()->id();
+//                 $post->author_name = auth()->user()->name;
+//             }
+//         });
+//     }
 
-        static::creating(function ($post) {
-            if (auth()->check()) {
-                $post->user_id = auth()->id();
-                $post->author_name = auth()->user()->name;
-            }
-        });
-    }
-
-    public function category(){
+    public function category(): BelongsTo{
         return $this->belongsTo(Category::class);
     }
 
@@ -54,7 +54,7 @@ class Post extends Model
         return $this->category ? $this->category->name : 'Без категории';
     }
 
-    public function comments(){
+    public function comments(): HasMany{
         return $this->hasMany(Comment::class);
     }
 }

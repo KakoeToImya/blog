@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Comment;
+use Illuminate\Http\CommentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,11 +14,8 @@ class CommentController extends Controller
         $this->middleware('auth')->except(['index']);
     }
 
-    public function store(Request $request, Post $post){
-        $validated = $request->validate([
-            'content'=>'required|min:1|max:2000',
-            'attachment'=>'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:2000'
-        ]);
+    public function store(CommentRequest $request, Post $post){
+        $validated = $request->validated();
 
         $data=[
             'content'=>$validated['content'],
