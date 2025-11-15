@@ -11,7 +11,7 @@ class PostRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -45,7 +45,8 @@ class PostRequest extends FormRequest
                 'image',
                 'mimes:jpeg,jpg,png,gif',
                 'max:2000',
-            ]
+            ],
+
         ];
     }
 }

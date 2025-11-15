@@ -31,7 +31,6 @@ class PostController extends Controller
 
     public function store(PostRequest $request){
         $validated = $request->validated();
-
         $validated['user_id']=auth()->id();
         $validated['author_name']=auth()->user()->name;
 

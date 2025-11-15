@@ -35,16 +35,16 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-//     protected static function boot(){
-//         parent::boot();
-//
-//         static::creating(function ($post) {
-//             if (auth()->check()) {
-//                 $post->user_id = auth()->id();
-//                 $post->author_name = auth()->user()->name;
-//             }
-//         });
-//     }
+     protected static function boot(){
+         parent::boot();
+
+         static::creating(function ($post) {
+             if (auth()->check()) {
+                 $post->user_id = auth()->id();
+                 $post->author_name = auth()->user()->name;
+             }
+         });
+     }
 
     public function category(): BelongsTo{
         return $this->belongsTo(Category::class);
