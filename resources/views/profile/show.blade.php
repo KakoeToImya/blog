@@ -30,7 +30,7 @@
                     <div id="posts-content" class="tab-content">
                         @if($posts->count())
                             <div class="space-y-6">
-                                @foreach($posts as $post)
+                                @foreach($commentedPosts as $post)
                                     <article class="border-b border-gray-200 pb-6">
                                         <h2 class="text-xl font-semibold mb-2">
                                             <a href="{{ route('posts.show', $post) }}"
@@ -48,7 +48,7 @@
                                                 @endif
                                             </div>
                                             <span class="mx-2"> </span>
-                                            <span>{{ $post->created_at->format('d.m.Y H:i') }}</span>
+                                            <span>Автор: {{ $post->user->name }}</span>
                                             <span class="mx-2"> </span>
                                             <span>{{ $post->comments_count }} комментариев</span>
                                         </div>
