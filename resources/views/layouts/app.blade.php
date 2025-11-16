@@ -13,6 +13,31 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        .highlight-comment{
+            animation: comment-highlight 2s ease;
+            position: relative;
+        }
+
+        @keyframes comment-highlight {
+            0% {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            }
+            20% {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+            }
+            40%{
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(59, 130, 246, 0.06) 100%);
+
+            }
+            60% {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(59, 130, 246, 0.04) 100%);
+            }
+            100% {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(59, 130, 246, 0.02) 100%);
+            }
+        }
+    </style>
 </head>
 <body class="font-sans antialiased">
 <div class="min-h-screen bg-gray-100">

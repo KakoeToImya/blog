@@ -66,9 +66,9 @@ class ProfileController extends Controller
     public function show(Category $category){
         $user=Auth::user();
         $posts=$user->posts()->with('category')->latest()->paginate(10,['*'], 'posts_page');
-        $commentedPosts=$user->posts()->with(['category', 'user'])->withCount('comments')->latest()->paginate(10,['*'], 'comments_page');
+        $comments=$user->comments()->with(['post.category', 'post.user'])->latest()->paginate(10,['*'], 'comments_page');
 
-        return view('profile.show', compact('user','posts','commentedPosts'));
+        return view('profile.show', compact('user','posts','comments'));
 
     }
 }

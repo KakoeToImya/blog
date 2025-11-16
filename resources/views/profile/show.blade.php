@@ -22,7 +22,7 @@
                 <div class="border-b border-gray-200">
                     <nav class="flex -mb-px" id="tabs">
                         <button data-tab="posts" class="tab-button py-4 px-6 text-center border-b-2 font-medium text-blue-500 border-blue-500">Мои посты {{ $posts->total() }}</button>
-                        <button data-tab="comments" class="tab-button py-4 px-6 text-center border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700">Прокомментированные посты {{ $commentedPosts->total() }}</button>
+                        <button data-tab="comments" class="tab-button py-4 px-6 text-center border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700">Прокомментированные посты {{ $comments->total() }}</button>
                     </nav>
                 </div>
 
@@ -30,7 +30,7 @@
                     <div id="posts-content" class="tab-content">
                         @if($posts->count())
                             <div class="space-y-6">
-                                @foreach($commentedPosts as $post)
+                                @foreach($posts  as $post)
                                     <article class="border-b border-gray-200 pb-6">
                                         <h2 class="text-xl font-semibold mb-2">
                                             <a href="{{ route('posts.show', $post) }}"
@@ -50,7 +50,7 @@
                                             <span class="mx-2"> </span>
                                             <span>Автор: {{ $post->user->name }}</span>
                                             <span class="mx-2"> </span>
-                                            <span>{{ $post->comments_count }} комментариев</span>
+                                            <span>{{ $post->created_at->format('d.m.Y H:i') }}</span>
                                         </div>
                                         <p class="text-gray-700 line-clamp-3">
                                             {{ Str::limit($post->excerpt ?? $post->content, 200) }}
@@ -69,51 +69,66 @@
                         @endif
                     </div>
 
+
+
                     <div id="comments-content" class="tab-content hidden">
-                        @if($commentedPosts->count())
+                        @if($comments->count())
                             <div class="space-y-6">
-                                @foreach($commentedPosts as $post)
-                                    <article class="border-b border-gray-200 pb-6">
-                                        <h2 class="text-xl font-semibold mb-2">
-                                            <a href="{{ route('posts.show', $post) }}"
-                                               class="text-blue-600 hover:text-blue-800 hover:underline">
-                                                {{ $post->title }}
-                                            </a>
-                                        </h2>
-                                        <div class="flex items-center text-sm text-gray-600 mb-2">
-                                            <div class="flex items-center">
-                                                <strong class="mr-2">Категория:</strong>
-                                                @if($post->category)
-                                                    <a href="{{ route('posts.category', $post->category->slug) }}" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">{{ $post->category->name }}</a>
-                                                @else
-                                                    <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs">Без категории</span>
-                                                @endif
+                                @foreach($comments as $comment)
+                                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div class="flex-1">
+                                                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                                                    <a href="{{ route('posts.show', $comment->post) }}?comment={{ $comment->id }}" class="hover:text-blue-600 transition duration-200">
+                                                        {{ $comment->post->title }}
+                                                    </a>
+                                                </h3>
+                                                <div class="flex items-center space-x-3 text-sm text-gray-600">
+                                                    <span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ $comment->post->category->name }}</span>
+                                                    <span>Автор: {{ $comment->post->user->name }}</span>
+                                                    <span>•</span>
+                                                    <span>{{ $comment->post->created_at->format('d.m.Y') }}</span>
+                                                </div>
                                             </div>
-                                            <span class="mx-2"> </span>
-                                            <span>Автор: {{ $post->user->name }}</span>
-                                            <span class="mx-2"> </span>
-                                            <span>{{ $post->comments_count }} комментариев</span>
                                         </div>
-                                        <p class="text-gray-700 line-clamp-3">
-                                            {{ Str::limit($post->excerpt ?? $post->content, 200) }}
-                                        </p>
-                                    </article>
+
+                                        <div class="bg-gray-50 rounded-lg p-4 mb-4 border-l-4 border-blue-500">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-medium text-gray-700"> Ваш комментарий:</span>
+                                                <span class="text-xs text-gray-500">{{ $comment->created_at->format('d.m.Y H:i') }}</span>
+                                            </div>
+                                            <p class="text-gray-700 whitespace-pre-line">{{ $comment->content }}</p>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <a href="{{ route('posts.show', $comment->post) }}?comment={{ $comment->id }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                                Перейти к комментарию
+                                            </a>
+                                        </div>
+                                    </div>
                                 @endforeach
                             </div>
 
-                            <div class="mt-6">
-                                {{ $commentedPosts->links() }}
+                            <!-- Пагинация -->
+                            <div class="mt-8">
+                                {{ $comments->links() }}
                             </div>
                         @else
-                            <p class="text-gray-500 text-center py-8">
-                                Вы еще не оставили ни одного комментария.
-                            </p>
+                            <div class="text-center py-12">
+                                <div class="text-gray-400 text-6xl mb-4">💬</div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Пока нет комментариев</h3>
+                                <a href="{{ route('posts.index') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md font-medium transition duration-200">
+                                    Читать посты
+                                </a>
+                            </div>
                         @endif
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -146,6 +161,8 @@
 
             switchTab('posts');
         });
+
+
     </script>
 
 
