@@ -65,7 +65,7 @@
 
                             <div id="categories-menu" class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 hidden">
                                 <div class="py-1">
-                                    @foreach(\App\Models\Category::all() as $category)
+                                    @foreach($categories as $category)
                                         <a href="{{ route('posts.category', $category->slug) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             {{ $category->name }}
                                         </a>

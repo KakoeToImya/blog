@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FriendsController;
 
 Route::get('/', [PostController::class, 'home'])->name('home');
 
@@ -20,7 +21,6 @@ Route::prefix('posts')->group(function () {
     Route::post('/', [PostController::class, 'store'])->name('posts.store');
     Route::get('/{id}', [PostController::class, 'show'])->name('posts.show');
     Route::post('/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
-
     Route::get('/{id}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/{id}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/{id}', [PostController::class, 'destroy'])->name('posts.destroy');
@@ -34,6 +34,20 @@ Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->nam
 
 Route::get('/profile', [ProfileController::class,'show'])->name('profile.show');
 
+
+
+//друзья
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('friends')->group(function () {
+        Route::get('/', [FriendsController::class, 'index'])->name('friends.index');
+        Route::get('/search', [FriendsController::class, 'search'])->name('friends.search');
+        Route::post('/send-request/{user}', [FriendsController::class, 'send'])->name('friends.send');
+        Route::post('/accept-request/{user}', [FriendsController::class, 'accept'])->name('friends.accept');
+        Route::post('/reject-request/{user}', [FriendsController::class, 'reject'])->name('friends.reject');
+        Route::post('/cancel-request/{user}', [FriendsController::class, 'cancel'])->name('friends.cancel');
+        Route::post('/remove-friend/{user}', [FriendsController::class, 'remove'])->name('friends.remove');
+    });
+});
 
 Route::get('/about', function () {
     return view('about');

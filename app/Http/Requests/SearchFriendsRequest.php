@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CommentRequest extends FormRequest
+class SearchFriendsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,17 +22,16 @@ class CommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => [
-                'required',
-                'min:1',
-                'max:2000',
-            ],
-            'attachment'=>[
-                'nullable',
-                'file',
-                'mimes:jpeg,png,jpg,gif,pdf,doc,docx',
-                'max:2048',
-            ],
+            'query' => 'required|string|min:1|max:50',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('query')) {
+            $this->merge([
+                'query' => trim($this->input('query'))
+            ]);
+        }
     }
 }

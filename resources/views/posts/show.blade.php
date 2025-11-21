@@ -94,7 +94,7 @@
                     @csrf
                     <div  class="mb-4">
                         <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Ваш комментарий</label>
-                        <textarea id="content" name="content" rows="4"class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"placeholder="Напишите ваш комментарий" required></textarea>
+                        <textarea id="content" name="content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Напишите ваш комментарий" required></textarea>
                     </div>
 
                     <div class="mb-4">
@@ -120,7 +120,7 @@
 
             <div  class="space-y-6">
                 @forelse($post->comments as $comment)
-                    <div data-comment-id="{{ $comment->id }}"  class="bg-white border border-gray-200 rounded-lg p-6">
+                    <div data-comment-id="{{ $comment->id }}"  class="bg-white border border-gray-200 rounded-lg p-6" >
                         <div class="flex justify-between items-start mb-4">
                             <div class="flex items-center">
                                 <div>
@@ -182,7 +182,7 @@
                    });
 
                    let url = new URL(window.location);
-                   url.searchParams.delete('comment');
+                   url.searchParams.delete('highlight_comment');
                    window.history.replaceState({},'',url);
                    setTimeout(()=>{
                       elComment.classList.remove('highlight-comment');
@@ -190,21 +190,20 @@
                }
            }
 
-           let urlParams= new URLSearchParams(window.location.search);
-           let commentId = urlParams.get('comment');
 
-           if(commentId){
-               scrollToComment(commentId);
-           }
+           @if($commentId)
+                scrollToComment({{$commentId}});
+           @endif
+
 
            document.addEventListener('click', function (evt){
-               let link = evt.target.closest('a[href*="comment"]');
+               let link = evt.target.closest('a[href*="highlight_comment"]');
                if(link && link.href.includes(window.location.origin)){
                    evt.preventDefault();
 
                    let url = new URL(link.href);
 
-                   let comment_id = url.searchParams.get('comment');
+                   let comment_id = url.searchParams.get('highlight_comment');
 
                    if(url.pathname === window.location.pathname){
                        scrollToComment(comment_id);

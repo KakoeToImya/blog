@@ -5,6 +5,7 @@ use App\Models\Post;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Http\Requests\PostRequest;
+use App\Http\Requests\PostShowRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
@@ -20,9 +21,25 @@ class PostController extends Controller
         $posts= Post::latest()->paginate(5);
         return view('posts.index',compact('posts'));
     }
-    public function show($id){
+    public function show(PostShowRequest $request,$id){
+        $validated = $request->validated();
+
+        $commentId = isset($validated['highlight_comment']) ? $validated['highlight_comment'] : null;
+        $highlightedComment = null;
+
         $post = Post::with(['category', 'user', 'comments.user'])->findOrFail($id);
-        return view('posts.show', compact('post'));
+
+        if ($commentId){
+            $highlightedComment = Comment::where('id', $commentId)->where('post_id', $post->id)->with('user')->first();
+
+            if(!$highlightedComment){
+                $commentId=null;
+            }
+        }
+
+
+
+        return view('posts.show', compact('post', 'commentId','highlightedComment'));
     }
 
     public function create(){
