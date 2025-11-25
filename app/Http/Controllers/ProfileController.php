@@ -63,7 +63,7 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
-    public function show(Category $category){
+    public function show(){
         $user=Auth::user();
         $posts=$user->posts()->with('category')->latest()->paginate(10,['*'], 'posts_page');
         $comments=$user->comments()->with(['post.category', 'post.user'])->latest()->paginate(10,['*'], 'comments_page');

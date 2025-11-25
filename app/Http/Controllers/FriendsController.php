@@ -7,49 +7,57 @@ use App\Models\Friendship;
 use App\Http\Requests\SearchFriendsRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\FriendRequestNotification;
+use App\Notifications\acceptedNotificationRequest;
 
 class FriendsController extends Controller
 {
     public function index(){
         $user=Auth::user();
-        $friend = $user->friends()->paginate(10);
+        $friends = $user->friends();
         $pending = $user->pendingFriends()->with('user')->get();
         $sent = $user->sentPendingFriends()->with('friend')->get();
 
-        return view('friends.index',compact('friend','pending','sent'));
+        return view('friends.index',compact('friends','pending','sent'));
 
     }
 
     public function send(User $user)
     {
-        if (Auth::id() === $user->id) {
+        $currentUser = Auth::user();
+
+        if ($currentUser->id === $user->id) {
             return redirect()->back()->with('error', 'Нельзя отправить запрос самому себе.');
         }
 
-        if (Auth::user()->sentFriendRequest($user)) {
+        if ($currentUser->sentFriendRequest($user)) {
             return redirect()->back()->with('error', 'Вы уже отправили запрос этому пользователю.');
         }
 
-        if (Auth::user()->isFriend($user)) {
+        if ($currentUser->isFriend($user)) {
             return redirect()->back()->with('error', 'Этот пользователь уже у вас в друзьях.');
         }
 
-        if (Auth::user()->receivedFriendRequest($user)) {
+        if ($currentUser->receivedFriendRequest($user)) {
             return redirect()->back()->with('error', 'Этот пользователь уже отправил вам запрос в друзья.');
         }
 
-        Friendship::create([
-            'user_id' => Auth::id(),
+        $friendship = Friendship::create([
+            'user_id' => $currentUser->id,
             'friend_id' => $user->id,
             'status' => 'pending'
         ]);
+
+        $user->notify(new FriendRequestNotification($friendship, $currentUser));
 
         return redirect()->back()->with('success', 'Запрос в друзья отправлен!');
     }
 
     public function accept(User $user)
     {
-        $friendship = Friendship::where('user_id', $user->id)->where('friend_id', Auth::id())->where('status', 'pending')->first();
+        $currentUser = Auth::user();
+
+        $friendship = Friendship::where('user_id', $user->id)->where('friend_id', $currentUser->id)->where('status', 'pending')->first();
 
         if (!$friendship) {
             return redirect()->back()->with('error', 'Запрос в друзья не найден.');
@@ -57,12 +65,17 @@ class FriendsController extends Controller
 
         $friendship->update(['status' => 'accepted']);
 
+        $user->notify(new acceptedNotificationRequest($friendship, $currentUser));
+
+
         return redirect()->back()->with('success', 'Запрос в друзья принят!');
     }
 
     public function reject(User $user)
     {
-        $friendship = Friendship::where('user_id', $user->id)->where('friend_id', Auth::id())->where('status', 'pending')->first();
+        $currentUser = Auth::user();
+
+        $friendship = Friendship::where('user_id', $user->id)->where('friend_id', $currentUser->id)->where('status', 'pending')->first();
 
         if (!$friendship) {
             return redirect()->back()->with('error', 'Запрос в друзья не найден.');
@@ -75,7 +88,9 @@ class FriendsController extends Controller
 
     public function cancel(User $user)
     {
-        $friendship = Friendship::where('user_id', Auth::id())->where('friend_id', $user->id)->where('status', 'pending')->first();
+        $currentUser = Auth::user();
+
+        $friendship = Friendship::where('user_id', $currentUser->id)->where('friend_id', $user->id)->where('status', 'pending')->first();
 
         if (!$friendship) {
             return redirect()->back()->with('error', 'Запрос в друзья не найден.');
@@ -88,11 +103,17 @@ class FriendsController extends Controller
 
     public function remove(User $user)
     {
-        if (!Auth::user()->isFriend($user)) {
-            return redirect()->back()->with('error', 'Поользователь не у вас в друзьях.');
+        $currentUser = Auth::user();
+
+        if (!$currentUser->isFriend($user)) {
+            return redirect()->back()->with('error', 'Этот пользователь не у вас в друзьях.');
         }
 
-        Auth::user()->removeFriendship($user);
+        $deleted = $currentUser->removeFriendship($user);
+
+        if ($deleted === 0) {
+            return redirect()->back()->with('error', 'Произошла ошибка при удалении из друзей.');
+        }
 
         return redirect()->back()->with('success', 'Пользователь удален из друзей.');
     }
@@ -101,11 +122,27 @@ class FriendsController extends Controller
     {
         $query = $request->validated()['query'];
 
+        $currentUser = Auth::user();
+
         $users = User::where('id', '!=', Auth::id())->where(function ($q) use ($query) {
 
             $q->where('name', 'LIKE', "%{$query}%")->orWhere('email', 'LIKE', "%{$query}%");
         })->paginate(10);
 
+        foreach ($users as $user) {
+            if($currentUser->isFriend($user)) {
+                $user->friendship_status = 'accepted';
+            }
+            elseif($currentUser->sentFriendRequest($user)){
+                $user->friendship_status = 'sent';
+            }
+            elseif($currentUser->receivedFriendRequest($user)){
+                $user->friendship_status = 'received';
+            }
+            else{
+                $user->friendship_status = 'none';
+            }
+        }
         return view('friends.search', compact('users', 'query'));
     }
 }

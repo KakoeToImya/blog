@@ -16,6 +16,8 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+
+
     /**
      * The attributes that are mass assignable.
      *
@@ -72,27 +74,44 @@ class User extends Authenticatable
         return $this->hasMany(Friendship::class, 'friend_id');
     }
 
-    public function friends(): BelongsToMany{
-        $sentFriends = $this->belongsToMany(User::class, 'friendship', 'user_id', 'friend_id')->withPivot('status','accepted');
-        $receivedFriends = $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id')->withPivot('status','accepted');
+    public function friends()
+    {
+        $friendsId= Friendship::where('status','accepted')
+        ->where(function ($query) {
+           $query->where('user_id', $this->id)->orWhere('friend_id',$this->id);
+        })->get()->map(function ($friend){
+            $friend=[$friend->user_id,$friend->friend_id];
+            return $friend;
+        })->toArray();
 
-        return $sentFriends->union($receivedFriends);
+
+        $friends = User::where('id','!=',$this->id)->whereIn('id', array_merge(...$friendsId))->get();
+
+
+        return $friends;
     }
 
     public function pendingFriends(){
-        return $this->sentFriend()->where('status','pending');
+        return $this->receivedFriend()->where('status','pending')->with('user');
     }
 
     public function sentPendingFriends(){
-        return $this->receivedFriend()->where('status','pending');
+        return $this->sentFriend()->where('status','pending')->with('user');
     }
 
     public function isFriend(User $user){
-        return $this->friends()->where('user_id', $user->id)->$this->exists();
+        $friendship = Friendship::where('status', 'accepted')
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $this->id)->where('friend_id', $user->id);
+            })->orWhere(function ($query) use ($user) {
+                $query->where('user_id', $user->id)->where('friend_id', $this->id)->where('status', 'accepted');
+            })->first();
+
+        return !is_null($friendship);
     }
 
     public function sentFriendRequest(User $user){
-        return $this->sentFriend()->where('friend_id', $user->id)->where('status','pending')->exists();
+            return $this->sentFriend()->where('friend_id', $user->id)->where('status','pending')->exists();
     }
 
     public function receivedFriendRequest(User $user){
@@ -101,12 +120,16 @@ class User extends Authenticatable
 
     public function removeFriendship(User $friend)
     {
-        $sent = $this->sentFriendRequests()->where('friend_id', $friend->id)->where('status', 'accepted')->delete();
-
-        $received = $this->receivedFriendRequests()->where('user_id', $friend->id)->where('status', 'accepted')->delete();
-
-        if(!!$sent && !!$received){
-            return true;
-        }
+        return Friendship::where('status', 'accepted')->where(function ($query) use ($friend) {
+            $query->where([
+                'user_id' => $this->id,
+                'friend_id' => $friend->id
+            ])->orWhere([
+                'user_id' => $friend->id,
+                'friend_id' => $this->id
+            ]);
+        })->delete();
     }
+
+
 }
