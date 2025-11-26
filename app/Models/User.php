@@ -131,5 +131,4 @@ class User extends Authenticatable
         })->delete();
     }
 
-
 }

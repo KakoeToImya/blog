@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
@@ -49,6 +50,17 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+
+// уведомления
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+        Route::delete('/', [NotificationController::class, 'clearAll'])->name('notifications.clear');
+    });
+});
 Route::get('/about', function () {
     return view('about');
 })->name('about');

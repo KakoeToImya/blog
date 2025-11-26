@@ -48,7 +48,7 @@ class FriendsController extends Controller
             'status' => 'pending'
         ]);
 
-        $user->notify(new FriendRequestNotification($friendship, $currentUser));
+        $user->notify(new FriendRequestNotification($currentUser));
 
         return redirect()->back()->with('success', 'Запрос в друзья отправлен!');
     }
@@ -65,7 +65,7 @@ class FriendsController extends Controller
 
         $friendship->update(['status' => 'accepted']);
 
-        $user->notify(new acceptedNotificationRequest($friendship, $currentUser));
+        $user->notify(new acceptedNotificationRequest($currentUser));
 
 
         return redirect()->back()->with('success', 'Запрос в друзья принят!');
@@ -122,27 +122,49 @@ class FriendsController extends Controller
     {
         $query = $request->validated()['query'];
 
-        $currentUser = Auth::user();
+        $currentUserid = Auth::id();
 
         $users = User::where('id', '!=', Auth::id())->where(function ($q) use ($query) {
 
             $q->where('name', 'LIKE', "%{$query}%")->orWhere('email', 'LIKE', "%{$query}%");
         })->paginate(10);
 
-        foreach ($users as $user) {
-            if($currentUser->isFriend($user)) {
-                $user->friendship_status = 'accepted';
-            }
-            elseif($currentUser->sentFriendRequest($user)){
-                $user->friendship_status = 'sent';
-            }
-            elseif($currentUser->receivedFriendRequest($user)){
-                $user->friendship_status = 'received';
-            }
-            else{
-                $user->friendship_status = 'none';
-            }
+        if(!$users->isEmpty()) {
+            $this->friendshipStatus($users, $currentUserid);
         }
         return view('friends.search', compact('users', 'query'));
+    }
+
+    private function friendshipStatus($users, $currentUserId)
+    {
+        $usersId = $users->pluck('id');
+        $friendships = Friendship::where(function ($q) use ($currentUserId, $usersId) {
+            $q->where('user_id', $currentUserId)->whereIn('friend_id', $usersId)->orWhere('friend_id', $currentUserId)->whereIn('user_id', $usersId);
+        })->get();
+
+        $status = [];
+        foreach($friendships as $friendship) {
+            if($friendship->user_id == $currentUserId) {
+                $otherUser = $friendship->friend_id;
+            }
+            else{
+                $otherUser = $friendship->user_id;
+            }
+
+            if($friendship->status == 'accepted') {
+                $status[$otherUser] = 'friend';
+            }
+            elseif($friendship->status == 'pending'){
+                if($friendship->user_id == $currentUserId) {
+                    $status[$otherUser] = 'sent';
+                }
+                else{
+                    $status[$otherUser] = 'received';
+                }
+            }
+        }
+        foreach($users as $user) {
+            $user->friendship_status = $status[$user->id]??'none';
+        }
     }
 }

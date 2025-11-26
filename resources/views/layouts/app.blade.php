@@ -37,6 +37,9 @@
                 background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(59, 130, 246, 0.02) 100%);
             }
         }
+        .btn{
+            height: 64px;
+        }
     </style>
 </head>
 <body class="font-sans antialiased">
@@ -56,7 +59,7 @@
 
                         <!-- меню -->
                         <div class="relative" id="categories-dropdown">
-                            <button type="button" id="categories-toggle" class="inline-flex items-center px-1 pt-2 mt-4 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                            <button type="button" id="categories-toggle" class="btn inline-flex items-center px-1 pt-2  border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
                                 Категории
                                 <svg class="ml-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -80,9 +83,23 @@
                 <div class="hidden sm:ml-6 sm:flex sm:items-center">
                     @auth
                         <div class="flex items-center space-x-4">
+                            <div class="relative">
+                                <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-700 hover:text-gray-900 transition duration-200 block">
+                                    🔔
+                                    @if(auth()->user()->unreadNotifications->count() > 0)
+                                        <span class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                                            {{ auth()->user()->unreadNotifications->count() }}
+                                        </span>
+                                    @endif
+                                </a>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
                             <a href="{{ route('profile.show') }}" class="text-sm text-gray-700 hover:text-gray-900">
                                 {{ Auth::user()->name }}
                             </a>
+                            <a href="{{ route('friends.index') }}" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-md text-sm font-medium transition duration-200" >Друзья</a>
+
                             <a href="{{ route('posts.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200">Создать пост</a>
 
                             <form action="{{ route('logout') }}" method="POST" class="inline">
@@ -101,6 +118,7 @@
                 </div>
             </div>
         </div>
+
     </nav>
 
     <!-- посты -->
